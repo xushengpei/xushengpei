@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>RPN计算器使用说明书</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1, h2 { color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        code { background-color: #f8f8f8; padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>RPN计算器使用说明书</h1>
+
+    <h2>1. 安装和编译指南</h2>
+    <ul>
+        <li>环境要求：Linux（Ubuntu 20.04/22.04）、g++编译器</li>
+        <li>编译命令：<code>g++ rpn_calc.cpp -o rpn_calc -lm</code></li>
+    </ul>
+
+    <h2>2. 基本使用示例</h2>
+    <p>运行程序：<code>./rpn_calc</code></p>
+    <table>
+        <tr><<th>输入表达式</</th><<th>输出结果</</th></tr>
+        <tr><td><code>5 5 +</code></td><td>10.00</td></tr>
+        <tr><td><code>10 2 /</code></td><td>5.00</td></tr>
+        <tr><td><code>25 sqrt</code></td><td>5.00</td></tr>
+    </table>
+
+    <h2>3. 支持的操作</h2>
+    <ul>
+        <li>四则运算：<code>+</code> <code>-</code> <code>*</code> <code>/</code>（双操作数）</li>
+        <li>栈指令：<code>clear</code>（清空）、<code>show</code>（显示栈）</li>
+    </ul>
+
+    <h2>4. 错误说明</h2>
+    <table>
+        <tr><<th>错误提示</</th><<th>解决方法</</th></tr>
+        <tr><td>栈空错误：无足够操作数</td><td>补充数字后执行操作</td></tr>
+        <tr><td>除零错误</td><td>确保除法分母非0</td></tr>
+    </table>
+</body>
+</html>
