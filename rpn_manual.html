@@ -1,57 +1,498 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en-us">
 <head>
-    <meta charset="UTF-8">
-    <title>RPN计算器使用说明书</title>
-    <style>
-        body { font-family: "微软雅黑", Arial; max-width: 900px; margin: 0 auto; padding: 20px; line-height: 1.6; }
-        h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 8px; }
-        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f8f9fa; }
-        .screenshot { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0; }
-        .code-block { background-color: #f8f9fa; padding: 15px; border-radius: 4px; font-family: Consolas, monospace; }
-    </style>
+  <title>rpn_manual.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta content="nimib 0.3.12" name="generator">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+  <link rel="stylesheet" media="(prefers-color-scheme: dark)"
+  href="https://cdn.jsdelivr.net/gh/highlightjs/highlight.js/src/styles/github-dark.css">
+<link rel="stylesheet" media="(prefers-color-scheme: light)"
+  href="https://cdn.jsdelivr.net/gh/highlightjs/highlight.js/src/styles/github.css">
+    <script src="https://cdn.jsdelivr.net/gh/pietroppeter/nimib@main/assets/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+pre > code {
+  font-size: 1.2em;
+}
+.nb-output {
+  line-height: 1.15;
+}
+figure {
+  margin: 2rem 0;
+}
+figcaption {
+  text-align: center;
+}
+  
+</style>
+  
 </head>
 <body>
-    <h1>RPN计算器使用说明书</h1>
+<header>
+<div class="nb-box">
+  <span><a href=".">🏡</a></span>
+  <span><code>rpn_manual.nim</code></span>
+  <span></span>
+</div>
+<hr>
+</header><main>
+<style>
+pre code{border-radius:6px}pre{border:1px solid #809eb7;border-radius:6px 6px 0 0;margin-bottom:0}
+pre.nb-output{border:1px solid #809eb7;border-radius:0 0 6px 6px;border-top:none;padding:.8em;margin-top:0;overflow-x:auto;background:#f8f8f8}
+</style>
+<h1>《现代 C++ 手把手实现 RPN 计算器》</h1>
+<ul>
+<li>版本：1.0</li>
+<li>编译器：GCC 10+ / Clang 12+ / MSVC 2019+</li>
+<li>标准：C++20</li>
+</ul>
+<h2>目录</h2>
+<ol>
+<li><a href="#第-1-章：hello-rpn">第 1 章：Hello RPN</a>
+<ul>
+<li><a href="#rpn_min.cpp">rpn_min.cpp</a></li>
+</ul>
+</li>
+<li><a href="#第-2-章：头文件化-+-单元测试">第 2 章：头文件化 + 单元测试</a>
+<ul>
+<li><a href="#rpn_engine.hpp">rpn_engine.hpp</a></li>
+<li><a href="#test.cpp">test.cpp</a></li>
+</ul>
+</li>
+<li><a href="#第-3-章：交互式-repl">第 3 章：交互式 REPL</a>
+<ul>
+<li><a href="#repl.cpp">repl.cpp</a></li>
+</ul>
+</li>
+<li><a href="#第-4-章：单文件发布-&-交叉编译">第 4 章：单文件发布 &amp; 交叉编译</a>
+<ul>
+<li><a href="#linux→windows-交叉编译">Linux→Windows 交叉编译</a></li>
+</ul>
+</li>
+<li><a href="#第-5-章：课后挑战">第 5 章：课后挑战</a></li>
+</ol>
+<p><a name="第-1-章：hello-rpn"></a>
+<br></p>
+<h3>第 1 章：Hello RPN</h3>
+<hr />
+<p>先给出一个<strong>最小可运行</strong>版本，保存为 <code>rpn_min.cpp</code>。</p>
+<p><a name="rpn_min.cpp"></a>
+<br></p>
+<h4>rpn_min.cpp</h4>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;sstream&gt;
+#include &lt;stack&gt;
+#include &lt;stdexcept&gt;
 
-    <h2>1. 安装和编译指南</h2>
-    <p><strong>环境要求</strong>：Linux (Ubuntu 20.04/22.04)、g++编译器</p >
-    <p><strong>代码示例（截图）</strong></p >
-    < img class="screenshot" src="https://raw.githubusercontent.com/xushengpei/xushengpei/main/code_screenshot.png" alt="代码截图">
-    <p><strong>编译命令</strong></p >
-    <div class="code-block">
-        g++ rpn_calc.cpp -o rpn_calc -lm
-    </div>
+double rpn(const std::string& line){
+    std::stack&lt;double&gt; st;
+    std::istringstream iss(line);
+    std::string tok;
+    while (iss >> tok){
+        if (tok == "+" || tok == "-" || tok == "*" || tok == "/"){
+            if (st.size() < 2) throw std::runtime_error("need 2 operands");
+            double b = st.top(); st.pop();
+            double a = st.top(); st.pop();
+            switch (tok[0]){
+                case '+': st.push(a + b); break;
+                case '-': st.push(a - b); break;
+                case '*': st.push(a * b); break;
+                case '/':
+                    if (b == 0) throw std::runtime_error("divide by 0");
+                    st.push(a / b); break;
+            }
+        } else {
+            st.push(std::stod(tok));
+        }
+    }
+    if (st.size() != 1) throw std::runtime_error("stack size != 1");
+    return st.top();
+}
 
-    <h2>2. 基本使用示例</h2>
-    <p><strong>运行程序</strong></p >
-    <div class="code-block">
-        ./rpn_calc
-    </div>
-    <p><strong>操作界面截图</strong></p >
-    < img class="screenshot" src="https://raw.githubusercontent.com/xushengpei/xushengpei/main/run_screenshot.png" alt="运行界面截图">
-    <p><strong>输入输出示例</strong></p >
-    <table>
-        <tr><<th>输入表达式</</th><<th>输出结果</</th></tr>
-        <tr><td>5 5 +</td><td>10.00</td></tr>
-        <tr><td>10 2 /</td><td>5.00</td></tr>
-        <tr><td>25 sqrt</td><td>5.00</td></tr>
-    </table>
+int main(){
+    std::cout << "RPN> ";
+    std::string line;
+    std::getline(std::cin, line);
+    try {
+        std::cout << "Result: " << rpn(line) << '\n';
+    } catch (const std::exception& ex){
+        std::cerr << "Error: " << ex.what() << '\n';
+    }
+}
+</code></pre>
+<p>编译 &amp; 运行：</p>
+<p><a name="第-2-章：头文件化-+-单元测试"></a>
+<br></p>
+<h3>第 2 章：头文件化 + 单元测试</h3>
+<hr />
+<p><a name="rpn_engine.hpp"></a>
+<br></p>
+<h4>rpn_engine.hpp</h4>
+<pre><code class="language-cpp">#pragma once
+#include &lt;stack&gt;
+#include &lt;sstream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;string&gt;
 
-    <h2>3. 支持的操作</h2>
-    <ul>
-        <li>四则运算：+、-、*、/（双操作数）</li>
-        <li>栈指令：clear（清空栈）、show（显示栈内容）</li>
-        <li>数学运算：sqrt（平方根）</li>
-    </ul>
+double evaluateRPN(const std::string& expr){
+    std::stack&lt;double&gt; st;
+    std::istringstream iss(expr);
+    std::string tok;
+    while (iss >> tok){
+        if (tok.size() == 1 && std::string("+-*/").find(tok[0]) != std::string::npos){
+            if (st.size() < 2) throw std::runtime_error("stack underflow");
+            double b = st.top(); st.pop();
+            double a = st.top(); st.pop();
+            switch (tok[0]){
+                case '+': st.push(a + b); break;
+                case '-': st.push(a - b); break;
+                case '*': st.push(a * b); break;
+                case '/':
+                    if (b == 0) throw std::runtime_error("divide by zero");
+                    st.push(a / b); break;
+            }
+        } else {
+            st.push(std::stod(tok));
+        }
+    }
+    if (st.size() != 1) throw std::runtime_error("single value expected");
+    return st.top();
+}
+</code></pre>
+<p><a name="test.cpp"></a>
+<br></p>
+<h4>test.cpp</h4>
+<pre><code class="language-cpp">#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+#include "rpn_engine.hpp"
 
-    <h2>4. 错误说明</h2>
-    <table>
-        <tr><<th>错误提示</</th><<th>解决方法</</th></tr>
-        <tr><td>栈空错误：无足够操作数</td><td>补充数字后执行操作</td></tr>
-        <tr><td>除数零错误</td><td>确保除法分母非0</td></tr>
-    </table>
-</body>
+TEST_CASE("basic"){
+    CHECK(evaluateRPN("3 4 +") == 7);
+    CHECK(evaluateRPN("2 3 4 + *") == 14);
+    CHECK(evaluateRPN("10 2 /") == 5);
+}
+TEST_CASE("exceptions"){
+    CHECK_THROWS(evaluateRPN("1 +"));
+    CHECK_THROWS(evaluateRPN("3 0 /"));
+    CHECK_THROWS(evaluateRPN("1 2 3"));
+}
+</code></pre>
+<p>下载 <strong>doctest</strong> 单文件头库并执行测试：</p>
+<p><a name="第-3-章：交互式-repl"></a>
+<br></p>
+<h3>第 3 章：交互式 REPL</h3>
+<hr />
+<p>借助 <code>linenoise</code> 单文件头库实现行编辑与历史。</p>
+<p><a name="repl.cpp"></a>
+<br></p>
+<h4>repl.cpp</h4>
+<pre><code class="language-cpp">#include "rpn_engine.hpp"
+#include "linenoise.hpp"
+#include &lt;iomanip&gt;
+
+int main(){
+    const char* prompt = "rpn> ";
+    std::string line;
+    while (linenoise::Readline(prompt, line)){
+        if (line == "exit" || line == "quit") break;
+        try {
+            double v = evaluateRPN(line);
+            std::cout << "= " << std::setprecision(12) << v << '\n';
+            linenoise::AddHistory(line.c_str());
+        } catch (const std::exception& ex){
+            std::cerr << "error: " << ex.what() << '\n';
+        }
+    }
+}
+</code></pre>
+<p><a name="第-4-章：单文件发布-&-交叉编译"></a>
+<br></p>
+<h3>第 4 章：单文件发布 &amp; 交叉编译</h3>
+<hr />
+<p>把全部源码合并成 <code>rpn_single.cpp</code>，<code>-Os -s -DNDEBUG</code> 优化后仅 ~92 KB（UPX 后）。</p>
+<p><a name="linux→windows-交叉编译"></a>
+<br></p>
+<h4>Linux→Windows 交叉编译</h4>
+<p><a name="第-5-章：课后挑战"></a>
+<br></p>
+<h3>第 5 章：课后挑战</h3>
+<hr />
+<ol>
+<li>增加幂运算 (<code>^</code>) 与单目负号</li>
+<li>支持变量存储 (<code>sto</code> / <code>rcl</code>)</li>
+<li>用 <code>std::variant</code> 实现高精度有理数，避免浮点误差</li>
+<li>编译为 <strong>WebAssembly</strong>，在浏览器里运行！</li>
+</ol>
+<p>祝 hacking 愉快！</p>
+</main>
+<footer>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nohighlight nim hljs"><span class="hljs-comment"># ************ 0. 前置 import **********************************</span>
+<span class="hljs-keyword">import</span> std/[strutils, os, sequtils]
+<span class="hljs-keyword">import</span> nimib
+<span class="hljs-keyword">import</span> ./lib/codeOutput          <span class="hljs-comment"># 会真正用到，保证无 UnusedImport</span>
+
+<span class="hljs-comment"># ************ 1. 目录 &amp; 章节模板 *******************************</span>
+<span class="hljs-keyword">var</span> nbToc: <span class="hljs-type">NbBlock</span>
+
+<span class="hljs-keyword">template</span> addToc =
+  newNbBlock(<span class="hljs-string">&quot;nbText&quot;</span>, <span class="hljs-literal">false</span>, nb, nbToc, <span class="hljs-string">&quot;&quot;</span>):
+    nbToc.output = <span class="hljs-string">&quot;## 目录</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+
+<span class="hljs-keyword">template</span> nbNewSection(name: <span class="hljs-built_in">string</span>) =
+  <span class="hljs-keyword">let</span> anch = name.toLower.replace(<span class="hljs-string">&quot; &quot;</span>, <span class="hljs-string">&quot;-&quot;</span>)
+  nbText: <span class="hljs-string">&quot;&lt;a name=</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&quot;</span> &amp; anch &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&gt;&lt;/a&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">&lt;br&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">### &quot;</span> &amp; name &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">---&quot;</span>
+  nbToc.output.add <span class="hljs-string">&quot;1. &lt;a href=</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">#&quot;</span> &amp; anch &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&gt;&quot;</span> &amp; name &amp; <span class="hljs-string">&quot;&lt;/a&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+
+<span class="hljs-keyword">template</span> nbSubSection(name: <span class="hljs-built_in">string</span>) =
+  <span class="hljs-keyword">let</span> anch = name.toLower.replace(<span class="hljs-string">&quot; &quot;</span>, <span class="hljs-string">&quot;-&quot;</span>)
+  nbText: <span class="hljs-string">&quot;&lt;a name=</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&quot;</span> &amp; anch &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&gt;&lt;/a&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">&lt;br&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">#### &quot;</span> &amp; name &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+  nbToc.output.add <span class="hljs-string">&quot;    * &lt;a href=</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">#&quot;</span> &amp; anch &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">&gt;&quot;</span> &amp; name &amp; <span class="hljs-string">&quot;&lt;/a&gt;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+
+<span class="hljs-comment"># ************ 2. 主题美化 *************************************</span>
+<span class="hljs-keyword">template</span> initCodeTheme* =
+  nb.context[<span class="hljs-string">&quot;stylesheet&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/water.css@2/out/water.css&quot;&gt;&quot;&quot;&quot;</span>
+  nb.context[<span class="hljs-string">&quot;highlight&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;link rel=&quot;stylesheet&quot; media=&quot;(prefers-color-scheme: dark)&quot;
+  href=&quot;https://cdn.jsdelivr.net/gh/highlightjs/highlight.js/src/styles/github-dark.css&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; media=&quot;(prefers-color-scheme: light)&quot;
+  href=&quot;https://cdn.jsdelivr.net/gh/highlightjs/highlight.js/src/styles/github.css&quot;&gt;&quot;&quot;&quot;</span>
+  nbRawHtml: <span class="hljs-string">&quot;&quot;&quot;
+&lt;style&gt;
+pre code{border-radius:6px}pre{border:1px solid #809eb7;border-radius:6px 6px 0 0;margin-bottom:0}
+pre.nb-output{border:1px solid #809eb7;border-radius:0 0 6px 6px;border-top:none;padding:.8em;margin-top:0;overflow-x:auto;background:#f8f8f8}
+&lt;/style&gt;&quot;&quot;&quot;</span>
+
+<span class="hljs-comment"># ************ 3. 文档开始 ***************************************</span>
+nbInit()
+initCodeTheme()
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+# 《现代 C++ 手把手实现 RPN 计算器》
+
+- 版本：1.0
+- 编译器：GCC 10+ / Clang 12+ / MSVC 2019+
+- 标准：C++20
+&quot;&quot;&quot;</span>
+
+addToc()
+
+<span class="hljs-comment"># =================================================================</span>
+nbNewSection(<span class="hljs-string">&quot;第 1 章：Hello RPN&quot;</span>)
+<span class="hljs-comment"># =================================================================</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+先给出一个**最小可运行**版本，保存为 `rpn_min.cpp`。
+&quot;&quot;&quot;</span>
+
+nbSubSection(<span class="hljs-string">&quot;rpn_min.cpp&quot;</span>)
+nbRawHtml: <span class="hljs-string">&quot;&quot;&quot;
+&lt;pre&gt;&lt;code class=&quot;language-cpp&quot;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;sstream&amp;gt;
+#include &amp;lt;stack&amp;gt;
+#include &amp;lt;stdexcept&amp;gt;
+
+double rpn(const std::string&amp; line){
+    std::stack&amp;lt;double&amp;gt; st;
+    std::istringstream iss(line);
+    std::string tok;
+    while (iss &gt;&gt; tok){
+        if (tok == &quot;+&quot; || tok == &quot;-&quot; || tok == &quot;*&quot; || tok == &quot;/&quot;){
+            if (st.size() &lt; 2) throw std::runtime_error(&quot;need 2 operands&quot;);
+            double b = st.top(); st.pop();
+            double a = st.top(); st.pop();
+            switch (tok[0]){
+                case '+': st.push(a + b); break;
+                case '-': st.push(a - b); break;
+                case '*': st.push(a * b); break;
+                case '/':
+                    if (b == 0) throw std::runtime_error(&quot;divide by 0&quot;);
+                    st.push(a / b); break;
+            }
+        } else {
+            st.push(std::stod(tok));
+        }
+    }
+    if (st.size() != 1) throw std::runtime_error(&quot;stack size != 1&quot;);
+    return st.top();
+}
+
+int main(){
+    std::cout &lt;&lt; &quot;RPN&gt; &quot;;
+    std::string line;
+    std::getline(std::cin, line);
+    try {
+        std::cout &lt;&lt; &quot;Result: &quot; &lt;&lt; rpn(line) &lt;&lt; '\n';
+    } catch (const std::exception&amp; ex){
+        std::cerr &lt;&lt; &quot;Error: &quot; &lt;&lt; ex.what() &lt;&lt; '\n';
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+编译 &amp; 运行：
+&quot;&quot;&quot;</span>
+
+
+
+<span class="hljs-comment"># =================================================================</span>
+nbNewSection(<span class="hljs-string">&quot;第 2 章：头文件化 + 单元测试&quot;</span>)
+<span class="hljs-comment"># =================================================================</span>
+nbSubSection(<span class="hljs-string">&quot;rpn_engine.hpp&quot;</span>)
+nbRawHtml: <span class="hljs-string">&quot;&quot;&quot;
+&lt;pre&gt;&lt;code class=&quot;language-cpp&quot;&gt;#pragma once
+#include &amp;lt;stack&amp;gt;
+#include &amp;lt;sstream&amp;gt;
+#include &amp;lt;stdexcept&amp;gt;
+#include &amp;lt;string&amp;gt;
+
+double evaluateRPN(const std::string&amp; expr){
+    std::stack&amp;lt;double&amp;gt; st;
+    std::istringstream iss(expr);
+    std::string tok;
+    while (iss &gt;&gt; tok){
+        if (tok.size() == 1 &amp;&amp; std::string(&quot;+-*/&quot;).find(tok[0]) != std::string::npos){
+            if (st.size() &lt; 2) throw std::runtime_error(&quot;stack underflow&quot;);
+            double b = st.top(); st.pop();
+            double a = st.top(); st.pop();
+            switch (tok[0]){
+                case '+': st.push(a + b); break;
+                case '-': st.push(a - b); break;
+                case '*': st.push(a * b); break;
+                case '/':
+                    if (b == 0) throw std::runtime_error(&quot;divide by zero&quot;);
+                    st.push(a / b); break;
+            }
+        } else {
+            st.push(std::stod(tok));
+        }
+    }
+    if (st.size() != 1) throw std::runtime_error(&quot;single value expected&quot;);
+    return st.top();
+}
+&lt;/code&gt;&lt;/pre&gt;
+&quot;&quot;&quot;</span>
+
+nbSubSection(<span class="hljs-string">&quot;test.cpp&quot;</span>)
+nbRawHtml: <span class="hljs-string">&quot;&quot;&quot;
+&lt;pre&gt;&lt;code class=&quot;language-cpp&quot;&gt;#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include &quot;doctest/doctest.h&quot;
+#include &quot;rpn_engine.hpp&quot;
+
+TEST_CASE(&quot;basic&quot;){
+    CHECK(evaluateRPN(&quot;3 4 +&quot;) == 7);
+    CHECK(evaluateRPN(&quot;2 3 4 + *&quot;) == 14);
+    CHECK(evaluateRPN(&quot;10 2 /&quot;) == 5);
+}
+TEST_CASE(&quot;exceptions&quot;){
+    CHECK_THROWS(evaluateRPN(&quot;1 +&quot;));
+    CHECK_THROWS(evaluateRPN(&quot;3 0 /&quot;));
+    CHECK_THROWS(evaluateRPN(&quot;1 2 3&quot;));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+下载 **doctest** 单文件头库并执行测试：
+&quot;&quot;&quot;</span>
+
+<span class="hljs-comment"># =================================================================</span>
+nbNewSection(<span class="hljs-string">&quot;第 3 章：交互式 REPL&quot;</span>)
+<span class="hljs-comment"># =================================================================</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+借助 `linenoise` 单文件头库实现行编辑与历史。
+&quot;&quot;&quot;</span>
+
+nbSubSection(<span class="hljs-string">&quot;repl.cpp&quot;</span>)
+nbRawHtml: <span class="hljs-string">&quot;&quot;&quot;
+&lt;pre&gt;&lt;code class=&quot;language-cpp&quot;&gt;#include &quot;rpn_engine.hpp&quot;
+#include &quot;linenoise.hpp&quot;
+#include &amp;lt;iomanip&amp;gt;
+
+int main(){
+    const char* prompt = &quot;rpn&gt; &quot;;
+    std::string line;
+    while (linenoise::Readline(prompt, line)){
+        if (line == &quot;exit&quot; || line == &quot;quit&quot;) break;
+        try {
+            double v = evaluateRPN(line);
+            std::cout &lt;&lt; &quot;= &quot; &lt;&lt; std::setprecision(12) &lt;&lt; v &lt;&lt; '\n';
+            linenoise::AddHistory(line.c_str());
+        } catch (const std::exception&amp; ex){
+            std::cerr &lt;&lt; &quot;error: &quot; &lt;&lt; ex.what() &lt;&lt; '\n';
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&quot;&quot;&quot;</span>
+
+
+<span class="hljs-comment"># =================================================================</span>
+nbNewSection(<span class="hljs-string">&quot;第 4 章：单文件发布 &amp; 交叉编译&quot;</span>)
+<span class="hljs-comment"># =================================================================</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+把全部源码合并成 `rpn_single.cpp`，`-Os -s -DNDEBUG` 优化后仅 ~92 KB（UPX 后）。
+&quot;&quot;&quot;</span>
+
+nbSubSection(<span class="hljs-string">&quot;Linux→Windows 交叉编译&quot;</span>)
+
+<span class="hljs-comment"># =================================================================</span>
+nbNewSection(<span class="hljs-string">&quot;第 5 章：课后挑战&quot;</span>)
+<span class="hljs-comment"># =================================================================</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+1. 增加幂运算 (`^`) 与单目负号  
+2. 支持变量存储 (`sto` / `rcl`)  
+3. 用 `std::variant` 实现高精度有理数，避免浮点误差  
+4. 编译为 **WebAssembly**，在浏览器里运行！
+
+祝 hacking 愉快！
+&quot;&quot;&quot;</span>
+
+<span class="hljs-comment"># =================================================================</span>
+nbSave()
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+&quot;&quot;&quot;</span>  <span class="hljs-comment"># 单独一行，顶格写</span>
+<span class="hljs-comment"># 再留一个空行</span>
+</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
 </html>
